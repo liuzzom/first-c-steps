@@ -1,50 +1,105 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
-#include <pthread.h>
-#include <unistd.h>
 
+// prototypes
 
-void* is_prime(void* args){
-	int* number = (int*) args;
-	int staticNumber = *number;
-	int i;
-	int* isPrime = (int*) malloc(sizeof(int));
+void error(char* msg);
 
-	for(i = 2; i < *number; i++){
-		if(*number%i == 0){
-			*isPrime = 1;
-			return(void*) isPrime;
-		}
-	}
+int isPrime(int num);
 
-	printf("%d è primo...\n", staticNumber);
-	*isPrime = 0;
-	return(void*) isPrime;
-}
+void print(int* array, size_t size);
+
+void bubble_sort(int* array, size_t size);
+
+// main
 
 int main(int argc, char** argv){
-	int primesToFind, primesFound = 0, currentNumber = 2, i;
-	int numThread = 2, *isPrime;
-	pthread_t* threads_ids = malloc(numThread*sizeof(pthread_t));
-	int *numbers = malloc(numThread*sizeof(int));
+	int *primes = malloc((argc + 1)*sizeof(int));
+	int *notPrimes = malloc((argc +1)*sizeof(int));
+	size_t i=1, j=0, l=0;
 
-	primesToFind = atoi(argv[1]);
-
-	while(primesFound < primesToFind){
-		for(i = 0; i < numThread; i++){
-			numbers[i] = currentNumber;
-			pthread_create(&threads_ids[i], NULL, &is_prime, &numbers[i]);
-			currentNumber++;
-		}
-		for(i = 0; i < numThread; i++){
-			pthread_join(threads_ids[i], (void**) &isPrime);
-			if(*isPrime == 0){
-				primesFound++;
-			}
-		}
-
+	if(!primes || !notPrimes){
+		error("Error wiht memory allocation");
 	}
 
-	printf("numeri trovati:%d ultimo numero primo trovato:%d\n", primesFound, currentNumber-1);
+	if(argc < 2){
+		error("Error on numbers");
+	}
+
+	while(argv[i]){
+		if(!atoi(argv[i])){
+			error("Error on inputs");
+		}
+
+		if(isPrime(atoi(argv[i])) == 1){
+			primes[j] = atoi(argv[i]);
+			j++;
+		}else{
+			notPrimes[l] = atoi(argv[i]);
+			l++;
+		}
+		i++;
+	}
+
+	bubble_sort(primes, j);
+	bubble_sort(notPrimes, l);
+
+	printf("Primes: ");
+	print(primes, j);
+	printf("Not Primes: ");
+	print(notPrimes, l);
+
+	return 0;
+}
+
+// function
+
+void error(char* msg){
+	perror(msg);
+	exit(0);
+}
+
+int isPrime(int num){
+	size_t i=2;
+
+	while(i <= num/2){
+		
+		if(num%i == 0){
+			return 0;
+		}
+
+		i++;
+	}
+
+	return 1;
+}
+
+void print(int* array, size_t size){
+	size_t i=0;
+
+	while(i < size){
+		printf("%d ", array[i]);
+		i++;
+	}
+
+	puts("");
+
+	return;
+}
+
+void bubble_sort(int* array, size_t size){
+	size_t i, j;
+	int tmp;
+
+	for(i = 0; i< size-1; i++){
+		for(j = 0; j < size-1; j++){
+			if(array[j+1] < array[j]){
+				tmp = array[j];
+				array[j] = array[j+1];
+				array[j+1] = tmp;
+			}
+		}
+	}
+
+	return;
 }
